@@ -1,16 +1,21 @@
 import express, { Response, Request } from "express";
-import { ContentModel, UserModel } from "./db";
+import { ContentModel, LinkModel, UserModel } from "./db";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { userMiddleWare } from "./middleware";
 import { JWT_PASS } from "./config";
 interface AuthenticatedRequest extends Request {
-  userId?: string;
+  userId?: string,
+  username?:string
 }
 const app = express();
 app.use(express.json());
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+const signinSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -20,7 +25,14 @@ app.post(
     try {
       const parsedData = signupSchema.parse(req.body);
       const { username, email, password } = parsedData;
-
+      //hash the password
+      for(let i=0;i<username.length;i++){
+        if(username[i] == ' '){
+          res.status(404).json({
+            msg:"no spacebar should be present in the username"
+          })
+        }
+      }
       const user = new UserModel({ username, email, password });
       await user.save();
       res.status(200).json({ msg: " User created successfully" });
@@ -31,14 +43,11 @@ app.post(
           details: err.errors,
         });
       }
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "User already exists" });
     }
   }
 );
-const signinSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+
 
 app.post("/api/v1/signin", async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -46,16 +55,31 @@ app.post("/api/v1/signin", async (req: AuthenticatedRequest, res: Response) => {
     const { email, password } = parsedData;
 
     const user = await UserModel.findOne({ email });
-    if (!user || user.password !== password) {
-      res.status(503).json("Invalid email or password");
-    } else {
+
+    if(user && user.password == password){
       const token = jwt.sign(
         {
           id: user._id,
+          username:user.username
         },
         JWT_PASS
       );
       res.status(200).json({ msg: " User signed in successfully", token });
+    }
+    else if (!user){
+      res.json(403).json({
+        msg:'user not found'
+      })
+    }
+    else if(user.password!=password){
+        res.json(411).json({
+        msg:'Invalid password'
+      })
+    }
+    else{
+      res.status(503).json({
+        msg:"Server error"
+      })
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -67,24 +91,22 @@ app.post("/api/v1/signin", async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 app.post("/api/v1/content", userMiddleWare, async (req:AuthenticatedRequest, res):Promise<void> => {
-  const link = req.body.link;
-  const title = req.body.title;
-  try {
-    await ContentModel.create({
-      link,
-      title,
-      userId: req.userId,
-      tags: [],
-    });
-     res.status(200).json({
-      message: "content added",
-    });
-  } catch (err) {
-    res.status(500).json({
-        msg:"Server error occurred"
-    })
-  }
+    const {title, link, type, tags} = req.body;
+    const userId = req.userId;
+    try{
+      const newContents = new ContentModel({title, link, type, tags, userId});
+      await newContents.save();
+      res.status(200).json({
+        msg :"contents added"
+      })
+    }
+    catch (err){
+      res.status(503).json({
+        msg:"Server Error", err
+      })
+    }
 });
 
 app.get(
@@ -96,10 +118,10 @@ app.get(
       const Data = await ContentModel.find({ userId }).populate(
         "userId", "username"
       );
-      console.log("New format available:", Data);
+      console.log( Data);
       res.status(200).json({ Data });
     } catch (err) {
-      res.status(500).json({ msg: "Error occurred" });
+      res.status(500).json({ msg: "Error occurred"});
     }
   }
 );
@@ -123,7 +145,41 @@ app.delete("/api/v1/content",userMiddleWare,async (req:AuthenticatedRequest, res
         })
     }
 })
-// app.post("/api/v1/brain/share", (req, res) => {});
-// app.post("/api/v1/brain/:shareLink", (req, res) => {});
+app.post("/api/v1/brain/share",userMiddleWare,async (req:AuthenticatedRequest, res):Promise<any> => {
+  const userId = req.userId;
+  const share = req.query.shareStatus;
+
+  if (share == '1' && userId){
+    try{
+      const hash = `${userId}`;
+      const link = new LinkModel({hash, userId});
+      await link.save();
+      return res.status(200).json({
+        link:hash
+      })
+    }
+    catch(err){
+      res.status(500).json({
+        msg:"Server Error"
+      })
+    }
+  }
+  else {
+    res.status(403).json({
+      msg:"user related error"
+    })
+  }
+});
+
+app.get('/api/v1/brain/:shareLink',userMiddleWare, async (req,res)=>{
+  const sharedUserId = req.params.shareLink;
+    try {
+      const Data = await ContentModel.find({ userId:sharedUserId });
+      console.log( Data);
+      res.status(200).json({ Data, sharedUserId });
+    } catch (err) {
+      res.status(500).json({ msg: "Error occurred"});
+    }
+});
 
 app.listen(3000);

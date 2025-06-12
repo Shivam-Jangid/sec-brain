@@ -1,11 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { JWT_PASS } from './config';
-export const userMiddleWare = (req:Request, res:Response,next:NextFunction)=>{
+interface areq extends Request {
+    userId?:string
+}
+interface jwtPay extends JwtPayload {
+    id:string
+}
+
+export const userMiddleWare = (req:areq, res:Response,next:NextFunction)=>{
     const header = req.headers['authorization'];
-    const decoded = jwt.verify(header as string, JWT_PASS);
+    const decoded = jwt.verify(header as string, JWT_PASS) as jwtPay;
     if (decoded){
-        //@ts-ignore
         req.userId = decoded.id;
         next();
     }
