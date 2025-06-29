@@ -1,4 +1,4 @@
-# ProjectX
+# Second Brain
 
 ## Overview
 
