@@ -2,7 +2,7 @@
 
 ## Overview
 
-**ProjectX** is a web application designed to help users save and manage links to YouTube videos, LinkedIn posts, or important documents for later viewing. With built-in authentication, ProjectX ensures your saved content is private and accessible only to you.
+**Second Brain** is a web application designed to help users save and manage links to YouTube videos, LinkedIn posts, or important documents for later viewing. With built-in authentication, Second Brain ensures your saved content is private and accessible only to you.
 
 ---
 
@@ -37,8 +37,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Shivam-Jangid/ProjectX.git
-   cd ProjectX
+   git clone https://github.com/Shivam-Jangid/Second Brain.git
+   cd Second Brain
    ```
 
 2. **Install dependencies:**
@@ -63,7 +63,7 @@
      ```
      MONGODB_URI=your_mongodb_connection_string
      JWT_SECRET=your_jwt_secret
-     PORT=5000
+     PORT=5173
      ```
    - Frontend `.env` may include API endpoints and other configs.
 
@@ -111,7 +111,7 @@
 ## Project Structure
 
 ```
-ProjectX/
+Second Brain/
   ├── client/       # React frontend (TypeScript, Tailwind CSS)
   ├── server/       # Node.js backend (Express, TypeScript)
   ├── README.md
