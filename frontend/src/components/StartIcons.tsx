@@ -3,7 +3,7 @@ interface propsSize{
 }
 const sizeIcons = {
   "sm":"size-3",
-  "md":"size-5",
+  "md":"size-4",
   "lg":"size-7",
 }
 export function ShareIcon(props:propsSize){

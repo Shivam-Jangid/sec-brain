@@ -1,7 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-    --color-pur-300:#e0e7fe;
-    --color-pur-500:#3e38a7;
-    --color-pur-600:#5046e4;
+    --font-poppins: Poppins, sans-serif;
+}
+
+@layer components {
+    .tags{
+        @apply mr-3 border border-blue-300 rounded-md px-2 py-0.5 text-sm bg-blue-200 text-blue-800
+    }
+    .cardsInterface {
+       @apply bg-slate-100 max-w-90 rounded-lg border-slate-100 px-4 py-8 shadow-sm shadow-slate-50 hover:translate-y-2 transition duration-100 ease-in
+    }
+    .input{
+        @apply border border-slate-700/40 focus:outline-none transition-all focus:border-2 focus:border-black rounded-md pl-1.5 py-1 w-full
+    }
 }

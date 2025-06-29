@@ -1,24 +1,21 @@
-import './App.css'
-import { Button } from './components/Button'
-import { PlusIcon, ShareIcon } from './components/StartIcons'
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import "./App.css";
+import Dashboard from "./components/pages/Dashboard";
+import Signin from "./components/pages/Signin";
+import SignUp from "./components/pages/SignUp";
+
 
 function App() {
-  return (
-    <>
-    <div className='flex py-5 justify-between'>
-    <div className='flex'>SideBar</div>
-    <div>Main content</div>
-    <div className='flex flex-col gap-3 mr-4 lg:flex-row lg:mr-10'>
-      <Button variants='secondary' text='Share' size='sm' startIcon={
-        <ShareIcon size='sm' />} onClick={()=>{console.log('onclick handler been called')}}></Button>
-      <Button variants='primary' text='Add Content' startIcon={<PlusIcon size='sm' />} size='sm' onClick={()=>{console.log('onclick handler been called')}}></Button>
-    
-    </div>
-</div>
-    </>
-  )
+  return <BrowserRouter>
+  <Routes >
+    <Route path="/" element = {<Dashboard />} />
+    <Route path="/signin" element = {<Signin />} />
+    <Route path="signup" element = {<SignUp />}/>
+    <Route path="/dashboard" element = {<Dashboard />}/>
+  </Routes>
+  </BrowserRouter>
 }
 
-export default App
+export default App;
 
 // startIcon={<ShareIcon size = "sm"/>}

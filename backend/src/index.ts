@@ -4,12 +4,16 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { userMiddleWare } from "./middleware";
 import { JWT_PASS } from "./config";
+import cors from 'cors';
 interface AuthenticatedRequest extends Request {
   userId?: string,
   username?:string
 }
 const app = express();
+
 app.use(express.json());
+app.use(cors());
+
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email format"),
@@ -93,18 +97,18 @@ app.post("/api/v1/signin", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 app.post("/api/v1/content", userMiddleWare, async (req:AuthenticatedRequest, res):Promise<void> => {
-    const {title, link, type, tags} = req.body;
+    const {title, link, type, tags, description} = req.body;
     const userId = req.userId;
     try{
-      const newContents = new ContentModel({title, link, type, tags, userId});
-      await newContents.save();
+      const newContents = new ContentModel({title, link, type, tags, userId, description});
+      const content = await newContents.save();
       res.status(200).json({
         msg :"contents added"
-      })
+      });
     }
     catch (err){
       res.status(503).json({
-        msg:"Server Error", err
+        msg:"Server Error"
       })
     }
 });
@@ -118,7 +122,6 @@ app.get(
       const Data = await ContentModel.find({ userId }).populate(
         "userId", "username"
       );
-      console.log( Data);
       res.status(200).json({ Data });
     } catch (err) {
       res.status(500).json({ msg: "Error occurred"});
@@ -147,9 +150,9 @@ app.delete("/api/v1/content",userMiddleWare,async (req:AuthenticatedRequest, res
 })
 app.post("/api/v1/brain/share",userMiddleWare,async (req:AuthenticatedRequest, res):Promise<any> => {
   const userId = req.userId;
-  const share = req.query.shareStatus;
+  const share = req.body.share;
 
-  if (share == '1' && userId){
+  if (share){
     try{
       const hash = `${userId}`;
       const link = new LinkModel({hash, userId});
@@ -165,17 +168,26 @@ app.post("/api/v1/brain/share",userMiddleWare,async (req:AuthenticatedRequest, r
     }
   }
   else {
-    res.status(403).json({
-      msg:"user related error"
-    })
+    try{
+      await LinkModel.deleteMany({
+        userId
+      })
+      res.status(200).json({
+        msg:"Link disabled"
+      })
+    }
+    catch{
+      res.status(503).json({
+        msg:"Server Error"
+      }
+    )}
   }
 });
 
-app.get('/api/v1/brain/:shareLink',userMiddleWare, async (req,res)=>{
+app.get('/api/v1/brain/:shareLink', async (req,res)=>{
   const sharedUserId = req.params.shareLink;
     try {
       const Data = await ContentModel.find({ userId:sharedUserId });
-      console.log( Data);
       res.status(200).json({ Data, sharedUserId });
     } catch (err) {
       res.status(500).json({ msg: "Error occurred"});

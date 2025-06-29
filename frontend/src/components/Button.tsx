@@ -1,29 +1,35 @@
 import type { ReactElement } from "react";
 
-export interface ButtonProps{
-    variants:'primary' | 'secondary',
-    size:'sm'|'md'|'lg',
+interface ButtonProps{
+    variants:'light' | 'dark',
     text:string,
     startIcon?:ReactElement,
     endIcon?:ReactElement,
     onClick: () => void;
+    width?:"full" | "auto";
+    loading?:true|false;
 }
 const variantStyles = {
-    "primary":"bg-pur-600 text-pur-300",
-    "secondary":"bg-pur-300 text-pur-500"
-}
-const sizeStyles = {
-    "sm":"p-2 rounded-sm",
-    "md":"px-4 py-2 rounded-md",
-    "lg":"px-6 py-2 rounded-lg"
+    "light":"bg-rose-500 text-white shadow-lg transition duration-200 hover:bg-purple-500 focus:border-2 focus:border-white ",
+    "dark":"bg-black text-white shadow-lg border border-white transition duration-200 hover:bg-slate-700"
 }
 export const Button = (props:ButtonProps) => {
-    return <button className={`flex transition-all justify-center items-center w-full gap-2 cursor-pointer lg:w-auto lg:pr-3 ${variantStyles[props.variants]} ${sizeStyles[props.size]}`} >
+    return <button className={`flex p-2.5 rounded-lg  mt-3 justify-center gap-2.5 ease-in-out shadow-lg cursor-${props.loading == true?"not-allowed":"pointer"} items-center ${variantStyles[props.variants]} w-${props.width} `} onClick={props.onClick}>
         {props.startIcon}
 {props.text}
     </button>
-
 }
-
-
-
+interface simpleButtonProps {
+    variant:"light"|"dark",
+    text:string,
+    onclick:()=>void;
+}
+const simpleButtonVal = {
+    "light":"bg-white text-black border-2 hover:bg-slate-200",
+    "dark":"bg-black text-white hover:bg-slate-700"
+}
+export function SimpleButtons(props:simpleButtonProps){
+    return <button onClick={props.onclick} className={`${simpleButtonVal[props.variant]} px-4 py-1 transition-all rounded-md cursor-pointer `}>
+        {props.text}
+    </button>
+}
